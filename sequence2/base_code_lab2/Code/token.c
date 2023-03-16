@@ -115,17 +115,17 @@ void tokenDump(FILE *f, Token *t) {
 void printToken(FILE * f, void * e) {
 
 	if (tokenIsNumber(e)) {
-		int value = tokenGetValue(e);
-		fprintf(stdout, "%d", &value);
+		double value = tokenGetValue(e);
+		fprintf(f, "%f ", value);
 	}
 
 	else if (tokenIsOperator(e)) {
 		char value = tokenGetOperatorSymbol(e);
-		fwrite(&value, sizeof(char), 1, f);
+		fprintf(f, "%c ", value);
 	}
 
 	else if (tokenIsParenthesis(e)) {
 		char value = tokenGetParenthesisSymbol(e);
-		fwrite(&value, sizeof(char), 1, f);
+		fprintf(f, "%c ", value);
 	}
 }

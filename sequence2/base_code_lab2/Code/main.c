@@ -20,16 +20,23 @@
  */
 
 
- bool isSymbol(char c) {
- 	char symbols[] = {'+', '-', '*', '^', '(', ')'};
- 	int i = 0;
- 	while (symbols[i] != '\0') {
- 		if (c == symbols[i]) {
- 			return 1;
- 		}
- 		i++;
- 	}
- 	return 0;
+ bool isSymbol(char * c) {
+ 	switch(*c) {
+		case '+':
+			return 1;
+		case '-':
+			return 1;
+		case '*':
+			return 1;
+		case '^':
+			return 1;
+		case '(':
+			return 1;
+		case ')':
+			return 1;
+		default:
+			return 0;
+	}
  }
 
 
@@ -43,35 +50,34 @@
 
  			Token * newToken;
 
- 			if (!isSymbol(*curspos)) {
+ 			if (!isSymbol(curspos)) {
 
- 				int lg;
+ 				int lg = 0;
  				char * cursposbis = curspos;
 
- 				while (!isSymbol(*cursposbis)) {
+ 				while (!isSymbol(cursposbis) && (*cursposbis != ' ') && (*cursposbis != '\n')) {
  					lg++;
  					cursposbis++;
  				}
 
- 				char number[lg];
- 				for (int i = 0; i < lg; i++) {
- 					number[i] = *curspos;
- 					curspos++;
- 				}
-
- 				newToken = createTokenFromString(number, lg);
+ 				newToken = createTokenFromString(curspos, lg);
  				finalQueue = queuePush(finalQueue, newToken);
-
+				curspos += lg;
  			}
 
  			else {
  				newToken = createTokenFromString(curspos, 1);
  				finalQueue = queuePush(finalQueue, newToken);
+				curspos++;
  			}
 
  		}
 
+		else {
+
  		curspos++;
+
+		}
 
    }
  	return finalQueue;
@@ -82,15 +88,18 @@ void computeExpressions(FILE * input) {
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t read;
+	Queue * myQueue;
 
-	FILE * f = fdopen(STDOUT_FILENO, "r");
+	FILE * f = fdopen(1, "w");
 
 	while ((read = getline(&line, &len, input)) != -1) {
 		if (read > 1) {
-			printf("Input : %s", line);
+			fprintf(f, "Input : %sInfix : ", line);
 
-			Queue * myQueue = stringToTokenQueue(line);
+			myQueue = stringToTokenQueue(line);
 			queueDump(f, myQueue, printToken);
+
+			fprintf(f, "\n\n");
 		}
 	}
 
