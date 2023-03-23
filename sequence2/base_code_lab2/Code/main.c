@@ -83,6 +83,50 @@
  	return finalQueue;
  }
 
+Queue * shuntingYard(Queue * infix) {
+	
+	Queue * output;
+	Stack * op_stack;
+	
+	while (!queueEmpty(infix)) {
+		
+		Token * token = queueTop(infix);
+		infix = pop(infix);
+		
+		if (tokenIsNumber(token)) {
+			output = push(token);
+		}
+		
+		else if (tokenIsOperator(token)) {
+			while ((tokenGetOperatorPriority(stackTop(op_stack)) > tokenGetOperatorPriority(token)) || ((tokenGetOperatorPriority(stackTop(op_stack)) == tokenGetOperatorPriority(token) && tokenOperatorIsLeftAssociative(token))) && tokenGetOperatorSymbol(stackTop(op_stack)) != "(") {
+				queuePush(output, stackTop(op_stack));
+				stackPop(op_stack);
+			}
+			stackPush(op_stack, token);
+		}
+
+		else if (tokenGetOperatorSymbol(token) == "(") {
+			queuePush(op_stack, token);
+		}
+
+		else if (tokenGetOperatorSymbol(token) == ")") {
+			while (tokenGetOperatorSymbol(stackTop(op_stack)) != "(") {
+				queuePush(output, stackTop(op_stack));
+				stackPop(op_stack);
+			}
+
+			stackPop(op_stack);
+		}
+
+	}
+
+	while (!tokenIsOperator(stackTop(op_stack))) {
+		queuePush(output, stackTop(op_stack));
+		stackPop(op_stack);
+	}
+	
+}
+
 void computeExpressions(FILE * input) {
 
 	char * line = NULL;
@@ -98,6 +142,7 @@ void computeExpressions(FILE * input) {
 
 			myQueue = stringToTokenQueue(line);
 			queueDump(f, myQueue, printToken);
+			myQueue = 
 
 			fprintf(f, "\n\n");
 		}
@@ -105,8 +150,6 @@ void computeExpressions(FILE * input) {
 
 	free(line);
 }
-
-
 
 
 
@@ -120,13 +163,48 @@ int main(int argc, char **argv){
 		return 1;
 	}
 
-	input = fopen(argv[1], "r");
+	Queue * shuntingYard(Queue * infix) {
+	
+	Queue * output;
+	Stack * op_stack;
+	
+	while (!queueEmpty(infix)) {
+		
+		Token * token = queueTop(infix);
+		infix = pop(infix);
+		
+		if (tokenIsNumber(token)) {
+			output = push(token);
+		}
+		
+		else if (tokenIsOperator(token)) {
+			while ((tokenGetOperatorPriority(stackTop(op_stack)) > tokenGetOperatorPriority(token)) || ((tokenGetOperatorPriority(stackTop(op_stack)) == tokenGetOperatorPriority(token) && tokenOperatorIsLeftAssociative(token))) && tokenGetOperatorSymbol(stackTop(op_stack)) != "(") {
+				queuePush(output, stackTop(op_stack));
+				stackPop(op_stack);
+			}
+			stackPush(op_stack, token);
+		}
 
-	if ( !input ) {
-		perror(argv[1]);
-		return 1;
+		else if (tokenGetOperatorSymbol(token) == "(") {
+			queuePush(op_stack, token);
+		}
+
+		else if (tokenGetOperatorSymbol(token) == ")") {
+			while (tokenGetOperatorSymbol(stackTop(op_stack)) != "(") {
+				queuePush(output, stackTop(op_stack));
+				stackPop(op_stack);
+			}
+
+			stackPop(op_stack);
+		}
+
 	}
 
+	while (!tokenIsOperator(stackTop(op_stack))) {
+		queuePush(output, stackTop(op_stack));
+		stackPop(op_stack);
+	}
+}
 	computeExpressions(input);
 
 	fclose(input);
