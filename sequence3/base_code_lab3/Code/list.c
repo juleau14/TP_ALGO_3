@@ -13,6 +13,8 @@
 
 #include "list.h"
 
+
+
 typedef struct s_LinkedElement {
 	int value;
 	struct s_LinkedElement *previous;
@@ -27,6 +29,14 @@ struct s_List {
 	int size;
 };
 
+typedef struct s_SubList {
+	LinkedElement * front;
+	LinkedElement * back;
+} SubList;
+
+SubList list_split(SubList l);
+SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f);
+SubList list_mergesort(SubList l, OrderFunctor f);
 
 /*-----------------------------------------------------------------*/
 
@@ -127,7 +137,7 @@ List *list_insert_at(List *l, int p, int v) {
 	LinkedElement * futurNext;
 	LinkedElement * elementToInsert = malloc(sizeof(LinkedElement));
 	elementToInsert->value = v;
-	futurNext = l->sentinel;
+	futurNext = l->sentinel->next;
 
 	for (int i = 0; i < p; i++) {
 		futurNext = futurNext->next;
@@ -147,15 +157,26 @@ List *list_insert_at(List *l, int p, int v) {
 /*-----------------------------------------------------------------*/
 
 List *list_remove_at(List *l, int p) {
-	(void)p;
+	LinkedElement * elementToRemove = l->sentinel->next;
+	for (int i = 0; i < p; i++) {
+		elementToRemove = elementToRemove->next;
+	}
+	elementToRemove->previous->next = elementToRemove->next;
+	elementToRemove->next->previous = elementToRemove->previous;
+	free(elementToRemove);
+	l->size--;
 	return l;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_at(List *l, int p) {
-	(void)l;
-	return p;
+	LinkedElement * current = l->sentinel->next;
+	for (int i = 0;i < p; i++) {
+		current = current->next;
+	}
+
+	return current->value;
 }
 
 /*-----------------------------------------------------------------*/
@@ -177,25 +198,87 @@ int list_size(List *l) {
 /*-----------------------------------------------------------------*/
 
 List * list_map(List *l, SimpleFunctor f) {
-	LinkedElement * currentElement = l->sentinel;
-	for (int i = 0; i < l->size; i++) {
-		currentElement = currentElement -> next;
-		currentElement->value = f(currentElement->value);
+	for (LinkedElement * e = l->sentinel->next; e != l->sentinel; e = e->next) {
+		e->value = f(e->value);
 	}
 	return l;
 }
 
 
 List *list_reduce(List *l, ReduceFunctor f, void *userData) {
-	(void)f;
-	(void)userData;
+	for (LinkedElement * e = l->sentinel->next; e != l->sentinel; e = e->next) {
+		f(e->value, userData);
+	}
 	return l;
 }
 
 /*-----------------------------------------------------------------*/
 
 List *list_sort(List *l, OrderFunctor f) {
-	(void)f;
+	SubList subList;
+	subList.front = l->sentinel->next;
+	subList.back = l->sentinel->previous;
+	subList.front->previous = NULL;
+	subList.back->next = NULL;
+	subList = list_mergesort(subList, f);
+	l->sentinel->next = subList.front;
+	l->sentinel->next->previous = l->sentinel;
+	l->sentinel->previous = subList.back;
+	l->sentinel->previous->next = l->sentinel;
 	return l;
 }
 
+
+SubList list_split(SubList l) {
+	LinkedElement * iterator1 = l.front;
+	LinkedElement * iterator2 = l.front;
+
+	while (iterator2 -> next != NULL) {
+		iterator1 = iterator1->next;
+		iterator2 = iterator2->next->next;
+	}
+
+	SubList result;
+	result.front = iterator1;
+	result.back = iterator1->next;
+	// iterator1->next = NULL;
+	// iterator2->previous = NULL;
+
+	return result;
+}
+
+
+SubList list_merge(SubList leftlist, SubList rightlist, OrderFunctor f) {
+	SubList result;
+
+	if (f(leftlist.back->value, rightlist.front->value)) {
+		leftlist.back->next = rightlist.front;
+		rightlist.front->previous = leftlist.back;
+		result.front = leftlist.front;
+		result.back = rightlist.back;
+	} else {
+		rightlist.back->next = leftlist.front;
+		leftlist.front->previous = rightlist.back;
+		result.front = rightlist.front;
+		result.back = leftlist.back;
+	}
+
+	return result;
+}
+
+
+SubList list_mergesort(SubList l, OrderFunctor f) {
+	if (l.back == l.front) {
+		return l;
+	} else {
+		SubList splitedList = list_split(l);
+		SubList leftList;
+		SubList rightList;
+		leftList.front = l.front;
+		leftList.back = splitedList.front;
+		rightList.front = splitedList.back;
+		rightList.back = l.back;
+
+		return list_merge(list_mergesort(leftList, f), list_mergesort(rightList, f), f);
+	}
+}
