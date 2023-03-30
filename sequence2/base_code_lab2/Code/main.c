@@ -83,6 +83,7 @@
  	return finalQueue;
  }
 
+<<<<<<< HEAD
 Queue * shuntingYard(Queue * infix) {
 	
 	Queue * output;
@@ -125,6 +126,54 @@ Queue * shuntingYard(Queue * infix) {
 		stackPop(op_stack);
 	}
 	
+=======
+Queue * shuttingYard(Queue * infix) {
+	
+	Queue * output = createQueue();
+	Stack * op_stack = createStack(0);
+	Token * token;
+
+	while (!queueEmpty(infix)) {
+
+		token = queueTop(infix);
+
+		if (tokenIsNumber(token)) {
+			output = queuePush(output, token);
+			infix = queuePop(infix);
+		}
+
+		else if (tokenIsOperator(token)) {
+			while ( (( tokenGetOperatorPriority(stackTop(op_stack)) > tokenGetOperatorPriority(token) ) || ( tokenGetOperatorPriority(stackTop(op_stack)) == tokenGetOperatorPriority(token) && tokenOperatorIsLeftAssociative(token) )) && ( tokenGetOperatorSymbol(stackTop(op_stack)) != '(' ) ) {
+				output = queuePush(output, stackTop(op_stack));
+				op_stack = stackPop(op_stack);
+			}
+
+			op_stack = stackPush(op_stack, token);
+
+			if (tokenGetOperatorSymbol(token) == '(') {
+				output = queuePush(output, token);
+			}
+
+			if (tokenGetOperatorSymbol(token) == ')') {
+				while (tokenGetOperatorSymbol(stackTop(op_stack)) != '(') {
+					output = queuePush(output, stackTop(op_stack));
+					op_stack = stackPop(op_stack);
+				}
+				op_stack =  stackPop(op_stack);
+			}
+		}
+
+		infix = queuePop(infix);
+
+	}
+
+	while (!stackEmpty(op_stack)) {
+		op_stack = stackPop(op_stack);
+	}
+
+	return output;
+
+>>>>>>> 19167cd099482603dce3c9ba988e781562a9eb0b
 }
 
 void computeExpressions(FILE * input) {
@@ -133,6 +182,7 @@ void computeExpressions(FILE * input) {
 	size_t len = 0;
 	ssize_t read;
 	Queue * myQueue;
+	Queue * notationPolonaise;
 
 	FILE * f = fdopen(1, "w");
 
@@ -142,8 +192,13 @@ void computeExpressions(FILE * input) {
 
 			myQueue = stringToTokenQueue(line);
 			queueDump(f, myQueue, printToken);
+<<<<<<< HEAD
 			myQueue = 
 
+=======
+			notationPolonaise = shuttingYard(myQueue);
+			queueDump(f, notationPolonaise, printToken);
+>>>>>>> 19167cd099482603dce3c9ba988e781562a9eb0b
 			fprintf(f, "\n\n");
 		}
 	}

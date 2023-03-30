@@ -90,21 +90,22 @@ List *list_push_front(List *l, int v) {
 /*-----------------------------------------------------------------*/
 
 int list_front(List *l) {
-	return l->sentinel->previous->value;
-}
-
-/*-----------------------------------------------------------------*/
-
-int list_back(List *l) {
 	return l->sentinel->next->value;
 }
 
 /*-----------------------------------------------------------------*/
 
+int list_back(List *l) {
+	return l->sentinel->previous->value;
+}
+
+/*-----------------------------------------------------------------*/
+
 List *list_pop_front(List *l) {
-	l->sentinel->previous = l->sentinel->previous->previous;
-	free(l->sentinel->previous->next);
-	l->sentinel->previous->next = l->sentinel;
+	l->sentinel->next = l->sentinel->next->next;
+	free(l->sentinel->next->previous);
+	l->sentinel->next->previous = l->sentinel;
+	l->size--;
 
 	return l;
 }
@@ -112,9 +113,10 @@ List *list_pop_front(List *l) {
 /*-----------------------------------------------------------------*/
 
 List *list_pop_back(List *l){
-	l->sentinel->next = l->sentinel->next->next;
-	free(l->sentinel->next->previous);
-	l->sentinel->next->previous = l->sentinel;
+	l->sentinel->previous = l->sentinel->previous->previous;
+	free(l->sentinel->previous->next);
+	l->sentinel->previous->next = l->sentinel;
+	l->size--;
 
 	return l;
 }
@@ -137,6 +139,8 @@ List *list_insert_at(List *l, int p, int v) {
 	elementToInsert->previous = futurPrevious;
 	futurPrevious->next = elementToInsert;
 
+	l->size++;
+
 	return l;
 }
 
@@ -157,21 +161,27 @@ int list_at(List *l, int p) {
 /*-----------------------------------------------------------------*/
 
 bool list_is_empty(List *l) {
-	(void)l;
-	return false;
+	bool result = false;
+	if (l->size == 0) {
+		result = true;
+	}
+	return result;
 }
 
 /*-----------------------------------------------------------------*/
 
 int list_size(List *l) {
-	(void)l;
-	return 0;
+	return l->size;
 }
 
 /*-----------------------------------------------------------------*/
 
 List * list_map(List *l, SimpleFunctor f) {
-	(void)f;
+	LinkedElement * currentElement = l->sentinel;
+	for (int i = 0; i < l->size; i++) {
+		currentElement = currentElement -> next;
+		currentElement->value = f(currentElement->value);
+	}
 	return l;
 }
 
