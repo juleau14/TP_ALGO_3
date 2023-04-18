@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "skiplist.h"
 #include "rng.h"
@@ -12,7 +13,7 @@ typedef struct s_node Node;
 struct s_node {
 	int value;
 	int level;
-	Node *** tab_nodes;
+	Node * tab_nodes[][2];
 };
 
 struct s_SkipList {
@@ -24,11 +25,18 @@ struct s_SkipList {
 
 Node * node_create(int level, int value) {
 
+	CHANGER LE SYSTEME DE NIVEAU, ESSAYER DE FAIRE UNE STRUCT COMME SUIT :
+	STRUCT NIVEAU {
+		INT LEVEL;
+		NODE * NEXT;
+		NODE * PREV;
+	}
+	ET LE NODE CONTIENT UN TABLEAU : STRUCT NIVEAU MESNIVEAUX[NBLVL]
+
 	Node * myNode = malloc(sizeof(struct s_node));
 
 	myNode->level = level;
-	Node *** tab_nodes = malloc(sizeof(Node *) * level * 2);
-	myNode->tab_nodes = tab_nodes;
+	myNode->tab_nodes = malloc(sizeof(Node *) * level * 2);
 
 	myNode->value = value;
 
@@ -36,12 +44,27 @@ Node * node_create(int level, int value) {
 }
 
 
+Node * sentinelle_create(int level) {
+	Node * sentinelle = node_create(level, 0);
+	for (int i = 0; i < level; i++) {
+		printf("%d\n", i);
+		sentinelle->tab_nodes[i][PREV] = sentinelle;
+		sentinelle->tab_nodes[i][NEXT] = sentinelle;
+	}
+	return sentinelle;
+}
+
+
 SkipList skiplist_create(int nblevels) {
+
+	printf("Création de la liste\n");
 
 	SkipList myList = malloc(sizeof(struct s_SkipList));
 	myList->size = 0;
 
-	Node * sentinelle = node_create(nblevels, 0);
+	printf("Creation sentinelle\n");
+	Node * sentinelle = sentinelle_create(nblevels);
+	printf("youhou\n");
 
 	myList->sentinelle = sentinelle;
 
@@ -88,7 +111,10 @@ void skiplist_map(SkipList myList, ScanOperator f, void*user_data) {
 
 
 SkipList skiplist_insert(SkipList myList, int value) {
-	int new_node_level = rng_get_value(&myList->rng, 100);
+	printf("Insertion de la valeur %d\n", value);
+	unsigned int new_node_level; 
+	new_node_level = rng_get_value(&myList->rng, (unsigned int)(myList->sentinelle->level));
+
 	Node * newNode = node_create(new_node_level, value);
 
 	Node * nextNode = myList->sentinelle->tab_nodes[0][NEXT];

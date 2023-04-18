@@ -1,3 +1,7 @@
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-result"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -93,7 +97,7 @@ SkipList buildlist(int num) {
  */
 
 void map_ex1(int val, void * data) {
-	printf("%d ", val * (*((int*)data)));
+	printf("%d ", val);
 }
 
 void test_construction(int num){
