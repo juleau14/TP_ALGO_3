@@ -91,8 +91,16 @@ SkipList buildlist(int num) {
 /** Exercice 1.
  	Programming and test of skiplist construction.
  */
+
+void map_ex1(int val, void * data) {
+	printf("%d ", val * (*((int*)data)));
+}
+
 void test_construction(int num){
-	(void) num;
+	SkipList myList = buildlist(num);
+	printf("SkipList (%u)\n", skiplist_size(myList));
+	int data = 1;
+	skiplist_map(myList, map_ex1, &data);
 }
 
 /** Exercice 2.

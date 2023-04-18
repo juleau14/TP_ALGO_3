@@ -7,18 +7,18 @@
 #define PREV 0
 #define NEXT 1
 
+typedef struct s_node Node;
 
-
-typedef struct s_node {
+struct s_node {
 	int value;
 	int level;
 	Node *** tab_nodes;
-} Node;
+};
 
 struct s_SkipList {
 	int size;
 	Node * sentinelle;
-	int random_number_generator;
+	RNG rng;
 };
 
 
@@ -38,12 +38,14 @@ Node * node_create(int level, int value) {
 
 SkipList skiplist_create(int nblevels) {
 
-	SkipList myList;
+	SkipList myList = malloc(sizeof(struct s_SkipList));
 	myList->size = 0;
 
 	Node * sentinelle = node_create(nblevels, 0);
 
-	myList-> random_number_generator = 0;
+	myList->sentinelle = sentinelle;
+
+	myList->rng = rng_initialize(0);
 
 	return myList;
 }
@@ -60,7 +62,7 @@ void skiplist_delete(SkipList d) {
 
 	free(current_node_to_delete);
 
-	free(&d);
+	free(d);
 }
 
 unsigned int skiplist_size(SkipList myList) {
@@ -69,7 +71,7 @@ unsigned int skiplist_size(SkipList myList) {
 
 int skiplist_ith(SkipList myList, unsigned int i) {
 	Node * current_node = myList->sentinelle;
-	for (int j = 0; j < i; j++) {
+	for (unsigned int j = 0; j < i; j++) {
 		current_node = current_node->tab_nodes[0][NEXT];
 	}
 
@@ -86,6 +88,33 @@ void skiplist_map(SkipList myList, ScanOperator f, void*user_data) {
 
 
 SkipList skiplist_insert(SkipList myList, int value) {
-	int new_node_level = rng_get_value(&myList->random_number_generator, 100);
-	Node * myNode = node_create(new_node_level, value);
+	int new_node_level = rng_get_value(&myList->rng, 100);
+	Node * newNode = node_create(new_node_level, value);
+
+	Node * nextNode = myList->sentinelle->tab_nodes[0][NEXT];
+
+	while (nextNode->value < newNode->value && nextNode != myList->sentinelle) {
+		nextNode = nextNode->tab_nodes[0][NEXT];
+	}
+
+	Node * previousNode = nextNode->tab_nodes[0][PREV];
+
+	for (int i = 0; i < newNode->level; i++) {
+		while (nextNode->level < i) {
+			nextNode = nextNode->tab_nodes[0][NEXT];
+		}
+
+		previousNode = nextNode->tab_nodes[i][PREV];
+
+		newNode->tab_nodes[i][NEXT] = nextNode;
+		nextNode->tab_nodes[i][PREV] = newNode;
+		
+		newNode->tab_nodes[0][PREV] = previousNode;
+		previousNode->tab_nodes[0][NEXT] = newNode;
+
+		nextNode = newNode->tab_nodes[0][NEXT];
+	}
+
+	return myList;
+
 }
